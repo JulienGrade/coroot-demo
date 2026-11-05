@@ -1,0 +1,28 @@
+@font-face { font-family: Comfortaa; src: url('/assets/Comfortaa.ttf') format('truetype'); font-display: swap; }
+:root { color: #1E0F1C; background: #F3FFFF; font-family: Comfortaa, sans-serif; line-height: 1.7; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+header, footer { padding: 24px max(6vw, 20px); background: white; display: flex; gap: 25px; justify-content: space-between; flex-wrap: wrap; }
+.brand { color: #0d75c2; font-size: 1.5rem; font-weight: bold; }
+main { max-width: 1160px; margin: auto; padding: 25px; }
+.hero { padding: 35px 0; max-width: 850px; }
+h1 { font-size: clamp(2rem, 4vw, 3.3rem); line-height: 1.25; }
+h2 { color: #0d75c2; font-size: 1.25rem; }
+.eyebrow { color: #0d75c2; letter-spacing: .12em; font-size: .8rem; }
+.architecture { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 15px; padding: 25px; background: #e4f2fc; border-radius: 18px; }
+.architecture div { background: white; padding: 16px; border-radius: 12px; text-align: center; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin: 30px 0; }
+article, .cases p { background: white; padding: 25px; border-radius: 18px; box-shadow: 0 5px 22px #0d75c20c; }
+button { background: #0d75c2; color: white; font: inherit; border: 0; border-radius: 10px; padding: 12px 18px; cursor: pointer; margin: 4px 0; }
+button.orange { background: #FDB228; color: #1E0F1C; }
+button:focus-visible { outline: 3px solid #575757; outline-offset: 3px; }
+button:disabled { opacity: .6; cursor: wait; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85rem; background: #f3f6f8; padding: 15px; border-radius: 10px; }
+.note, footer { color: #575757; font-size: .85rem; }
+.cases { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+@media (max-width: 700px) {
+  .grid, .cases { grid-template-columns: 1fr; }
+  main { padding: 18px; }
+  .architecture { flex-direction: column; }
+  .architecture > span { transform: rotate(90deg); }
+}
