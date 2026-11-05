@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: parcelflow
+data:
+  init.sql: "CREATE TABLE IF NOT EXISTS products (\n  id INTEGER PRIMARY KEY,\n  name\
+    \ TEXT NOT NULL,\n  price_cents INTEGER NOT NULL CHECK (price_cents > 0)\n);\n\
+    INSERT INTO products VALUES (1, 'Clavier mécanique', 8900),\n  (2, 'Souris ergonomique',\
+    \ 4900), (3, 'Casque audio', 7900)\nON CONFLICT (id) DO NOTHING;\n"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: parcelflow
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: parcelflow
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        app.kubernetes.io/part-of: parcelflow
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: postgres
+        image: postgres:17-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
+        env:
+        - name: POSTGRES_DB
+          value: parcelflow
+        - name: POSTGRES_USER
+          value: parcelflow
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        ports:
+        - containerPort: 5432
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: '1'
+            memory: 512Mi
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - parcelflow
+            - -d
+            - parcelflow
+          periodSeconds: 5
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        - name: init
+          mountPath: /docker-entrypoint-initdb.d
+          readOnly: true
+      volumes:
+      - name: init
+        configMap:
+          name: postgres-init
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
