@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ParcelFlow · Démonstration Coroot</title><link rel="stylesheet" href="/style.css"><script src="/client.js" defer></script></head>
+<body>
+<header><span class="brand">ParcelFlow</span><span>Démonstration d’observabilité</span></header>
+<main>
+  <section class="hero"><p class="eyebrow">DU SYMPTÔME À LA CAUSE</p><h1>Une commande traverse plusieurs services.</h1><p>Repérez ce qui ralentit le parcours, mesurez son impact et vérifiez le retour à la normale.</p></section>
+  <section class="architecture" aria-label="Architecture"><div>Navigateur</div><span>→</span><div>Gateway</div><span>→</span><div>Catalogue + PostgreSQL<br>Paiement</div></section>
+  <section class="grid">
+    <article><h2>Parcours client</h2><p>Le catalogue est lu en base. Une commande sollicite ensuite le service de paiement. Les paiements sont simulés.</p><button id="products">Afficher le catalogue</button><button id="checkout" class="orange">Passer une commande</button><p id="status" role="status">Prêt à lancer une requête.</p><pre id="result">Les résultats apparaîtront ici.</pre></article>
+    <article><h2>Ce qu’il faut observer</h2><ul><li>Les dépendances entre services</li><li>Le débit, les erreurs et la latence</li><li>Le temps passé dans PostgreSQL</li><li>Le CPU du service de paiement</li><li>La version déployée au début de l’incident</li></ul><p>Ouvrez Coroot dans un second onglet. Lancez le trafic avec le guide, puis un incident à la fois.</p><p class="note">Les mesures affichées ici sont le temps et le statut de la requête dans votre navigateur. Coroot fournit sa propre télémétrie.</p></article>
+  </section>
+  <section><h2>Quatre investigations</h2><div class="cases"><p><strong>SQL lent</strong><br>Le catalogue et la commande ralentissent ensemble.</p><p><strong>CPU élevé</strong><br>Le paiement ralentit, le catalogue reste accessible.</p><p><strong>Dépendance arrêtée</strong><br>Le processus web vit encore, les commandes échouent.</p><p><strong>Régression</strong><br>La livraison passe, le paiement renvoie des erreurs.</p></div></section>
+</main><footer>ParcelFlow · Environnement de démonstration</footer>
+</body></html>
