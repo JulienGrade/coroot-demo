@@ -1,0 +1,52 @@
+{
+  "coroot": {
+    "image": "ghcr.io/coroot/coroot@sha256:ddb72d25bc68b615387306b788860c992e2a72a550e8db07d18a1c768976775d",
+    "platforms": [
+      "amd64",
+      "unknown",
+      "arm64",
+      "unknown"
+    ],
+    "resolved_tag": "latest"
+  },
+  "coroot-node-agent": {
+    "image": "ghcr.io/coroot/coroot-node-agent@sha256:a1488ca3e541703fe4b4cdefeff2dae992cc9f45affd18f9f41e5b12a8016cae",
+    "platforms": [
+      "amd64",
+      "unknown",
+      "arm64",
+      "unknown"
+    ],
+    "resolved_tag": "latest"
+  },
+  "coroot-cluster-agent": {
+    "image": "ghcr.io/coroot/coroot-cluster-agent@sha256:827ef8a0471e9957853cde5b2fbb58f1030c25d496a221020ee5f8ba12b2eb59",
+    "platforms": [
+      "arm64",
+      "unknown",
+      "amd64",
+      "unknown"
+    ],
+    "resolved_tag": "latest"
+  },
+  "clickhouse": {
+    "image": "ghcr.io/coroot/clickhouse@sha256:8c73c5d8ab9dc3a4566b757e6ca4dd8d83058840e6b7efffe0191d6e8dbffce9",
+    "platforms": [
+      "amd64",
+      "arm64",
+      "unknown",
+      "unknown"
+    ],
+    "resolved_tag": "25.11.2-ubi9-0"
+  },
+  "prometheus": {
+    "image": "ghcr.io/coroot/prometheus@sha256:c2a4f92f728411b834b7abd07764cf587e28749c377b157443569dea4f81f833",
+    "platforms": [
+      "amd64",
+      "arm64",
+      "unknown",
+      "unknown"
+    ],
+    "resolved_tag": "2.55.1-ubi9-0"
+  }
+}
