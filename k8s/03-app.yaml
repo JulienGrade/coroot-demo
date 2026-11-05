@@ -1,0 +1,307 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: parcelflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+        app.kubernetes.io/part-of: parcelflow
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: web
+        image: parcelflow:1.0
+        imagePullPolicy: Never
+        env:
+        - name: ROLE
+          value: gateway
+        - name: APP_VERSION
+          value: '1.0'
+        - name: FAULT_PATH
+          value: /faults/mode
+        - name: CATALOG_URL
+          value: http://catalog:3000
+        - name: PAYMENT_URL
+          value: http://payment:3000
+        ports:
+        - name: http
+          containerPort: 3000
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 96Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          periodSeconds: 5
+          timeoutSeconds: 2
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        startupProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          periodSeconds: 5
+          failureThreshold: 24
+        volumeMounts:
+        - name: faults
+          mountPath: /faults
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: faults
+        configMap:
+          name: faults
+      - name: tmp
+        emptyDir:
+          sizeLimit: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: parcelflow
+spec:
+  selector:
+    app: gateway
+  ports:
+  - name: http
+    port: 3000
+    targetPort: http
+    nodePort: 30081
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+  namespace: parcelflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog
+  template:
+    metadata:
+      labels:
+        app: catalog
+        app.kubernetes.io/part-of: parcelflow
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: web
+        image: parcelflow:1.0
+        imagePullPolicy: Never
+        env:
+        - name: ROLE
+          value: catalog
+        - name: APP_VERSION
+          value: '1.0'
+        - name: FAULT_PATH
+          value: /faults/mode
+        - name: PGHOST
+          value: postgres
+        - name: PGDATABASE
+          value: parcelflow
+        - name: PGUSER
+          value: parcelflow
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: password
+        ports:
+        - name: http
+          containerPort: 3000
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 96Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          periodSeconds: 5
+          timeoutSeconds: 2
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        startupProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          periodSeconds: 5
+          failureThreshold: 24
+        volumeMounts:
+        - name: faults
+          mountPath: /faults
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: faults
+        configMap:
+          name: faults
+      - name: tmp
+        emptyDir:
+          sizeLimit: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog
+  namespace: parcelflow
+spec:
+  selector:
+    app: catalog
+  ports:
+  - name: http
+    port: 3000
+    targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  namespace: parcelflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+        app.kubernetes.io/part-of: parcelflow
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: web
+        image: parcelflow:1.0
+        imagePullPolicy: Never
+        env:
+        - name: ROLE
+          value: payment
+        - name: APP_VERSION
+          value: '1.0'
+        - name: FAULT_PATH
+          value: /faults/mode
+        ports:
+        - name: http
+          containerPort: 3000
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 96Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          periodSeconds: 5
+          timeoutSeconds: 2
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        startupProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          periodSeconds: 5
+          failureThreshold: 24
+        volumeMounts:
+        - name: faults
+          mountPath: /faults
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: faults
+        configMap:
+          name: faults
+      - name: tmp
+        emptyDir:
+          sizeLimit: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment
+  namespace: parcelflow
+spec:
+  selector:
+    app: payment
+  ports:
+  - name: http
+    port: 3000
+    targetPort: http
