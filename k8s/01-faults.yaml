@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: faults
+  namespace: parcelflow
+data:
+  mode: normal
