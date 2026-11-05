@@ -32,6 +32,7 @@ function createServer({ role, pool, catalogUrl, paymentUrl, faultPath, version =
     res.on('finish', () => {
       if (!url.pathname.startsWith('/health/')) {
         logger(JSON.stringify({ time: new Date().toISOString(), service: role, version,
+          level: res.statusCode >= 500 ? 'error' : 'info', message: 'http_request_completed',
           request_id: requestId, parent_request_id: req.headers['x-request-id'] || null,
           method: req.method, path: url.pathname, status: res.statusCode,
           duration_ms: Math.round(performance.now() - started) }));
@@ -76,7 +77,9 @@ function createServer({ role, pool, catalogUrl, paymentUrl, faultPath, version =
       return json(404, { error: 'Route inconnue' });
     } catch (error) {
       logger(JSON.stringify({ time: new Date().toISOString(), service: role,
-        request_id: requestId, event: 'request_failed', error: error.message }));
+        level: 'error', message: 'upstream_request_failed',
+        request_id: requestId, event: 'request_failed', error: error.message,
+        cause_code: error.cause?.code || null, cause_message: error.cause?.message || null }));
       return json(503, { error: 'Service temporairement indisponible', request_id: requestId });
     }
   });
@@ -88,7 +91,10 @@ if (require.main === module) {
   if (!['gateway', 'catalog', 'payment'].includes(role)) throw new Error('ROLE invalide');
   const pool = role === 'catalog' ? new Pool({ max: 6, connectionTimeoutMillis: 1000,
     statement_timeout: 2500, query_timeout: 3000, application_name: 'catalog' }) : null;
-  pool?.on('error', error => console.error(JSON.stringify({ event: 'sql_pool_error', code: error.code })));
+  pool?.on('error', error => console.error(JSON.stringify({
+    time: new Date().toISOString(), level: 'error', message: 'sql_connection_lost',
+    service: role, event: 'sql_pool_error', code: error.code,
+  })));
   const server = createServer({ role, pool, version: process.env.APP_VERSION || '1.0',
     catalogUrl: process.env.CATALOG_URL, paymentUrl: process.env.PAYMENT_URL,
     faultPath: process.env.FAULT_PATH });

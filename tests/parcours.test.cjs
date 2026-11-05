@@ -33,6 +33,8 @@ test('Le parcours HTTP traverse les services et distingue les quatre incidents',
     assert.equal(normal.status, 201);
     assert.equal((await normal.json()).amount_cents, 8900);
     assert.ok(events.some(event => event.service === 'payment' && event.parent_request_id));
+    assert.ok(events.length > 0);
+    assert.ok(events.every(event => event.level === 'info' && event.message));
     await writeFile(faultPath, 'sql');
     assert.equal((await fetch(gatewayUrl + '/api/products')).status, 200);
     assert.ok(queries.includes('SELECT pg_sleep(0.7)'));
@@ -47,6 +49,10 @@ test('Le parcours HTTP traverse les services et distingue les quatre incidents',
     const unavailableUrl = await start({ role: 'gateway', catalogUrl, paymentUrl: 'http://127.0.0.1:1' });
     assert.equal((await fetch(unavailableUrl + '/health/live')).status, 200);
     assert.equal((await fetch(unavailableUrl + '/api/checkout', { method: 'POST' })).status, 503);
+    const failure = events.find(event => event.event === 'request_failed' && event.error === 'fetch failed');
+    assert.equal(failure.level, 'error');
+    assert.equal(failure.message, 'upstream_request_failed');
+    assert.ok(failure.cause_message);
     assert.equal((await fetch(gatewayUrl + '/api/checkout')).status, 404);
   } finally {
     for (const server of servers) {
